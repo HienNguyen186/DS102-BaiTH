@@ -70,6 +70,66 @@ print("Train size:", X_train.shape)
 print("Test size:", X_test.shape)
 
 # ======================================
+# TÍNH F1 SCORE BẰNG TAY
+# ======================================
+
+def manual_f1_score(y_true, y_pred):
+
+    classes = np.unique(y_true)
+
+    f1_scores = []
+    weights = []
+
+    for cls in classes:
+
+        # TP, FP, FN
+        tp = np.sum((y_true == cls) & (y_pred == cls))
+
+        fp = np.sum((y_true != cls) & (y_pred == cls))
+
+        fn = np.sum((y_true == cls) & (y_pred != cls))
+
+        tn = np.sum((y_true != cls) & (y_pred != cls))
+
+        # Precision
+        if tp + fp == 0:
+            precision = 0
+        else:
+            precision = tp / (tp + fp)
+
+        # Recall
+        if tp + fn == 0:
+            recall = 0
+        else:
+            recall = tp / (tp + fn)
+
+        # F1
+        if precision + recall == 0:
+            f1 = 0
+        else:
+            f1 = 2 * precision * recall / (precision + recall)
+
+        f1_scores.append(f1)
+
+        # trọng số của class
+        weights.append(np.sum(y_true == cls))
+
+        print(f"\nClass {cls}")
+        print(f"TP = {tp}, FP = {fp}, FN = {fn}, TN = {tn}")
+        print(f"Precision = {precision:.4f}")
+        print(f"Recall    = {recall:.4f}")
+        print(f"F1 Score  = {f1:.4f}")
+
+    # Weighted F1
+    weights = np.array(weights)
+
+    weighted_f1 = np.sum(
+        np.array(f1_scores) * weights
+    ) / np.sum(weights)
+
+    return weighted_f1
+
+# ======================================
 # RANDOM FOREST NUMPY
 # ======================================
 
@@ -87,10 +147,9 @@ rf_numpy.fit(X_train, y_train)
 
 y_pred_numpy = rf_numpy.predict(X_test)
 
-f1_numpy = f1_score(
+f1_numpy = manual_f1_score(
     y_test,
-    y_pred_numpy,
-    average='weighted'
+    y_pred_numpy
 )
 
 print("\nF1 Score (NumPy):", round(f1_numpy, 4))
